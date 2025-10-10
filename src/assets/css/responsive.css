@@ -1,0 +1,108 @@
+@media screen and (min-width: 741px) and (max-width: 1024px) {
+	.slider-img {
+		object-fit: contain;
+	}
+}
+@media screen and (max-width: 741px) {
+	#content {
+		margin-top: 60px;
+	}
+	.nb-main {
+		justify-content: space-between;
+	}
+	.pay-separate,
+	.slider,
+	.category,
+	.policy,
+	.tp-login,
+	.tp__right-nav,
+	.nb__center,
+	.nb__center-tag {
+		display: none;
+	}
+	.nb__right-bars-wp {
+		display: block;
+	}
+	.nb__right-close-wp.active {
+		display: block;
+	}
+	.products-item-2 {
+		width: calc(50% - 10px);
+	}
+
+	.footer-license,
+	.footer-widgets {
+		flex-direction: column;
+	}
+	.fw__block + .fw__block {
+		margin-top: 20px;
+	}
+	.fw-mail {
+		margin-top: 0;
+	}
+	.fl-right {
+		margin-top: 20px;
+	}
+	.products-list {
+		flex-wrap: wrap;
+	}
+	.pduct-wp {
+		width: 300px;
+		flex-direction: column;
+	}
+	.pduct-left {
+		height: 200px;
+	}
+	.pduct-left__img {
+		object-fit: contain;
+	}
+	.pay-heading {
+		margin-bottom: 20px;
+	}
+	.pay-body {
+		flex-direction: column;
+		overflow-y: scroll;
+		margin-bottom: 20px;
+	}
+	.pay-form-inp,
+	.pay-left,
+	.pay-right {
+		width: 100%;
+	}
+	.pay-right {
+		margin-top: 40px;
+	}
+	.pay-right__cart-ls {
+		height: 200px;
+	}
+
+	.ab-info-value,
+	.ab-info-inp {
+		min-width: 220px;
+		font-size: 1.2rem;
+	}
+	.ordered-empty {
+		font-size: 1.4rem;
+	}
+	.ordered-body {
+		width: 320px;
+		min-width: 220px;
+	}
+	/* admin */
+	.line {
+		display: none;
+	}
+	.sidebar {
+		display: none;
+		transform: translateX(-100%);
+	}
+	.sidebar.active {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		display: flex;
+		transform: translateX(0%);
+		background-color: var(--grey-color);
+	}
+}
