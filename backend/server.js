@@ -1,21 +1,22 @@
-import express from 'express';
-import mysql from 'mysql2';
-import cors from 'cors';
-import bcrypt from 'bcryptjs';
+import express from "express";
+import mysql from "mysql2";
+import cors from "cors";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import bodyParser from 'body-parser';
-import axios from 'axios'; // <-- LỖI 1: Đã thêm import axios
-import dotenv from 'dotenv'; // <-- THAY ĐỔI 1: Thêm import dotenv
+import bodyParser from "body-parser";
+import dotenv from "dotenv";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-dotenv.config(); // <-- THAY ĐỔI 2: Kích hoạt dotenv để đọc file .env
+dotenv.config(); // Đọc biến môi trường từ .env
 
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
+app.use(bodyParser.json()); // Đảm bảo đọc được req.body
+app.use(express.static("uploads"));
 
-app.use(express.json());
-app.use('/uploads', express.static('uploads')); 
+// ====== KẾT NỐI MYSQL ======
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
@@ -25,38 +26,39 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-    if (err) {
-        console.error(' Lỗi kết nối MySQL:', err);
-        return;
-    }
-    console.log(' Kết nối MySQL thành công');
+  if (err) {
+    console.error("❌ Lỗi kết nối MySQL:", err);
+  } else {
+    console.log("✅ Kết nối MySQL thành công");
+  }
 });
-////////////////////////////////
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// ====== KẾT NỐI GEMINI ======
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.post("/api/chatbot", async (req, res) => {
-    // Thêm dòng log này để kiểm tra
-    console.log("Đã nhận được yêu cầu đến /api/chatbot!");
-
-    try {
-        const { message } = req.body;
-        if (!message) {
-            return res.status(400).json({ error: "Message is required." });
-        }
-        
-        const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
-            { contents: [{ parts: [{ text: message }] }] }
-        );
-        
-        const reply = response.data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I don't understand.";
-        res.json({ reply });
-
-    } catch (err) {
-        console.error("Lỗi API:", err.response?.data || err.message);
-        res.status(500).json({ error: "Lỗi khi gọi API." });
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
     }
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+    const result = await model.generateContent([
+      "Bạn là chatbot thân thiện của website bán giày, hãy trả lời ngắn gọn và tự nhiên.",
+      message,
+    ]);
+
+    const reply = result.response.text();
+    res.json({ reply });
+  } catch (error) {
+    console.error("🔥 Lỗi chatbot Gemini:", error.message, error.statusText || "", error);
+    res.status(500).json({ error: "Failed to get response from Gemini AI" });
+  }
 });
+
+
+
 
 
 
