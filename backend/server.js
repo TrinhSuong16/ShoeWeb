@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import chatbotRoute from "./routes/chatbot.route.js";
+
 
 dotenv.config(); // Đọc biến môi trường từ .env
 
@@ -32,31 +34,39 @@ db.connect((err) => {
     console.log("✅ Kết nối MySQL thành công");
   }
 });
+app.use("/api/chatbot", chatbotRoute);
 
-// ====== KẾT NỐI GEMINI ======
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// // ====== KẾT NỐI GEMINI ======
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-app.post("/api/chatbot", async (req, res) => {
-  try {
-    const { message } = req.body;
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
-    }
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// app.post("/api/chatbot", async (req, res) => {
+//   try {
+//     const { message } = req.body;
+//     if (!message) {
+//       return res.status(400).json({ error: "Message is required" });
+//     }
 
-    const result = await model.generateContent([
-      "Bạn là chatbot thân thiện của website bán giày, hãy trả lời ngắn gọn và tự nhiên.",
-      message,
-    ]);
+//     // ✅ Dùng model nhanh nhất hiện tại
+//     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
-    const reply = result.response.text();
-    res.json({ reply });
-  } catch (error) {
-    console.error("🔥 Lỗi chatbot Gemini:", error.message, error.statusText || "", error);
-    res.status(500).json({ error: "Failed to get response from Gemini AI" });
-  }
-});
+//     // ✅ Streaming response (nhận từng phần)
+//     const stream = await model.generateContentStream([
+//       "Bạn là chatbot thân thiện của website bán giày, trả lời ngắn gọn và tự nhiên.",
+//       message,
+//     ]);
 
+//     let reply = "";
+//     for await (const chunk of stream.stream) {
+//       const chunkText = chunk.text();
+//       if (chunkText) reply += chunkText;
+//     }
+
+//     res.json({ reply });
+//   } catch (error) {
+//     console.error("🔥 Lỗi chatbot Gemini:", error.message, error);
+//     res.status(500).json({ error: "Failed to get response from Gemini AI" });
+//   }
+// });
 
 
 
