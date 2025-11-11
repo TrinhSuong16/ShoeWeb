@@ -14,6 +14,7 @@ import historyorder from '@/components/homepages/viewhome/historyorder.vue'
 import account from '@/components/homepages/viewhome/account.vue';
 import new_prod from '@/components/homepages/viewhome/new_prod.vue';
 import buy1prod from '@/components/homepages/viewhome/buy1prod.vue';
+
 const routes = [
         { path: '/', redirect: '/home' }, // Mặc định vào trang admin
         { path: '/home', component: Main },
@@ -37,6 +38,12 @@ const routes = [
           props: true
         },
          { path: '/buy1prod', component: buy1prod },
+         {
+  path: "/product/:id",
+  name: "ProductDetail",
+  component: () => import("../components/homepages/viewhome/ProductDetail.vue.vue")
+}
+
 
  ];
 

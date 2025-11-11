@@ -92,25 +92,34 @@
 										<!-- SEARCH -->
 										<!--  -->
 										<div class="nb__right-search-wp">
-											<div class="nb__right-search">
-												<div class="nb__right-inp">
-													<input
-                          class="nb__right-form-inp"
-                          type="text"
-                          v-model="searchQuery"
-                          @keyup.enter="handleSearch"
-                          placeholder="Tìm kiếm..."
-                        />
+  <div class="nb__right-search">
+    <div class="nb__right-inp">
+      <input
+        class="nb__right-form-inp"
+        type="text"
+        v-model="searchQuery"
+        @input="fetchSuggestions"
+        placeholder="Tìm kiếm..."
+      />
+    </div>
 
+    <div class="nb__right-btn-search">
+      <font-awesome-icon :icon="['fas', 'search']" class="icon" />
+    </div>
+  </div>
 
-												</div>
-												<div class="nb__right-btn-search">
-													    <font-awesome-icon :icon="['fas', 'search']" class="icon" />
+  <!-- Gợi ý -->
+  <ul v-if="suggestions.length" class="suggest-box">
+    <li
+      v-for="item in suggestions"
+      :key="item.SP_ma"
+      @click="goToDetail(item.SP_ma)"
+    >
+      {{ item.SP_ten }}
+    </li>
+  </ul>
+</div>
 
-													<i class="fa fa-search"></i>
-												</div>
-											</div>
-										</div>
 										<!--  -->
 										<!-- CART -->
 										<!--  -->
@@ -215,145 +224,205 @@
 				</div>
 
 </template>
-
 <script>
 import axios from "axios";
 import { RouterLink } from 'vue-router';
 
 export default {
-  data() {
-    return {
-      searchQuery: "",
-      cart: [],
-      showCart: false, // Mặc định ẩn giỏ hàng,
-	  showCheckoutModal: false, // Điều khiển hiển thị modal
-    order: {
-      KH_ma:"",
-      KH_hoten: "",
-      KH_email: "",
-      KH_sdt: "",
-      shippingMethod: "Giao hàng tận nơi",
-      paymentMethod: "Thanh toán khi nhận hàng",
-      KH_addr: "",
-      cart: JSON.parse(localStorage.getItem("cart")) || []
-    },
-	user: JSON.parse(localStorage.getItem("user")) || {}
-    };
-  },
-  computed: {
-    totalPrice() {
-      return this.cart.reduce((total, item) => total + item.price * item.quantity, 0);
-    }
-  },
-  mounted() {
-    this.loadCart();
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-        this.user = JSON.parse(storedUser);
-	}
-  },
-  methods: {
-    handleSearch() {
-    if (this.searchQuery) {
-      this.$router.push({ path: '/search', query: { q: this.searchQuery } });
-    }
-  },
-    
-	///////////////////
-	openCheckoutModal() {
-	const token = localStorage.getItem("token"); // Kiểm tra token đăng nhập
-    if (!token) {
-        alert("Bạn cần đăng nhập để thanh toán!");
-        this.$router.push("/login"); // Chuyển hướng đến trang đăng nhập
-        return;
-    }
+  data() {
+    return {
+      searchQuery: "",
+      suggestions: [],       // ✅ thêm dòng này
+      cart: [],
+      showCart: false,
+      showCheckoutModal: false,
+      order: {
+        KH_ma: "",
+        KH_hoten: "",
+        KH_email: "",
+        KH_sdt: "",
+        shippingMethod: "Giao hàng tận nơi",
+        paymentMethod: "Thanh toán khi nhận hàng",
+        KH_addr: "",
+        cart: JSON.parse(localStorage.getItem("cart")) || []
+      },
+      user: JSON.parse(localStorage.getItem("user")) || {}
+    };
+  },
 
-    // Gán thông tin user vào order nếu đã đăng nhập
-	    this.order.KH_ma = this.user.KH_ma || "";
+  computed: {
+    totalPrice() {
+      return this.cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    }
+  },
 
-    this.order.KH_hoten = this.user.KH_hoten || "";
-    this.order.KH_email = this.user.KH_email || "";
-    this.order.KH_sdt = this.user.KH_sdt || "";
-    this.order.KH_addr = this.user.KH_addr || "";
-    this.showCheckoutModal = true;
-  },
-  closeCheckoutModal() {
-    this.showCheckoutModal = false;
-      this.$router.push('/');
-  },
-    submitOrder() {
-        const user = JSON.parse(localStorage.getItem("user"));
-        const KH_ma = user ? user.KH_ma : null;
- // Lấy mã khách hàng từ localStorage
-        if (!KH_ma) {
-            alert("Bạn cần đăng nhập để đặt hàng!");
-            return;
-        }
+  mounted() {
+    this.loadCart();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      this.user = JSON.parse(storedUser);
+    }
+  },
 
-        // Chuẩn bị dữ liệu gửi lên API
-        const orderData = {
-            KH_ma,
-            DH_diachi: this.order.addr,
-            DH_thanhtoan: this.order.paymentMethod,
-            products: this.order.cart.map(item => ({
-                SP_ma: item.id,
-                soluong: item.quantity
-            }))
-        };
+  methods: {
+    // ✅ Gợi ý sản phẩm (realtime)
+    async fetchSuggestions() {
+      if (!this.searchQuery.trim()) {
+        this.suggestions = [];
+        return;
+      }
 
-        // Gửi yêu cầu API để tạo đơn hàng
-        axios.post("http://localhost:5000/api/create_order", orderData)
-            .then(response => {
-                alert(response.data.message);
-                this.showCheckoutModal = false; // Đóng modal thanh toán
-                this.clearCart(); // Xóa giỏ hàng sau khi đặt hàng thành công
-            })
-            .catch(error => {
-                alert(error.response.data.error || "Lỗi khi đặt hàng");
-            });
-  },
-	////////////////////
-    loadCart() {
-      this.cart = JSON.parse(localStorage.getItem("cart")) || [];
-    },
-    toggleCart() {
-      this.showCart = !this.showCart; // Đảo trạng thái hiển thị
-    },
-    increaseQuantity(index) {
-      if (this.cart[index].quantity < 5) {
-        this.cart[index].quantity++;
-        this.saveCart();
-      }
-    },
-    decreaseQuantity(index) {
-      if (this.cart[index].quantity > 1) {
-        this.cart[index].quantity--;
-      } else {
-        this.cart.splice(index, 1); // Xóa nếu số lượng về 0
-      }
-      this.saveCart();
-    },
-        clearCart() {
-          this.cart = []; 
-          this.order.cart = []; // Đảm bảo giỏ hàng trong order cũng bị xóa
-          localStorage.removeItem("cart"); // Xóa giỏ hàng trong localStorage
-        }
+      const res = await axios.get("http://localhost:5000/sanpham/suggest", {
+        params: { q: this.searchQuery }
+      });
 
-    ,
+      this.suggestions = res.data;
+    },
 
-    removeItem(index) {
-      this.cart.splice(index, 1);
-      this.saveCart();
-    },
-    saveCart() {
-      localStorage.setItem("cart", JSON.stringify(this.cart));
-    },
-    
-  }
+    // ✅ Chuyển đến trang chi tiết sản phẩm
+    goToDetail(id) {
+      this.searchQuery = "";
+      this.suggestions = [];
+      this.$router.push(`/product/${id}`);
+    },
+
+    // 💡 ĐÃ SỬA: Tìm kiếm khi nhấn ENTER (Chuyển sang Soft Reload)
+    handleSearch() {
+      if (this.searchQuery) {
+        // Sử dụng $router.push chuẩn để điều hướng
+        this.$router.push({ path: '/search', query: { q: this.searchQuery } }).catch(() => {});
+        // Đảm bảo component Search (trang kết quả) có watcher cho $route.query.q
+      }
+    },
+
+    ///////////////////
+    openCheckoutModal() {
+      const token = localStorage.getItem("token");
+      // LƯU Ý: Thay thế alert() bằng Custom Modal nếu bạn đang sử dụng
+      if (!token) {
+        alert("Bạn cần đăng nhập để thanh toán!");
+        this.$router.push("/login");
+        return;
+      }
+
+      this.order.KH_ma = this.user.KH_ma || "";
+      this.order.KH_hoten = this.user.KH_hoten || "";
+      this.order.KH_email = this.user.KH_email || "";
+      this.order.KH_sdt = this.user.KH_sdt || "";
+      this.order.KH_addr = this.user.KH_addr || "";
+      this.showCheckoutModal = true;
+    },
+
+    closeCheckoutModal() {
+      this.showCheckoutModal = false;
+      this.$router.push('/');
+    },
+
+    submitOrder() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const KH_ma = user ? user.KH_ma : null;
+
+      // LƯU Ý: Thay thế alert() bằng Custom Modal nếu bạn đang sử dụng
+      if (!KH_ma) {
+        alert("Bạn cần đăng nhập để đặt hàng!");
+        return;
+      }
+
+      const orderData = {
+        KH_ma,
+        DH_diachi: this.order.addr,
+        DH_thanhtoan: this.order.paymentMethod,
+        products: this.order.cart.map(item => ({
+          SP_ma: item.id,
+          soluong: item.quantity
+        }))
+      };
+
+      axios.post("http://localhost:5000/api/create_order", orderData)
+        .then(response => {
+          // LƯU Ý: Thay thế alert() bằng Custom Modal nếu bạn đang sử dụng
+          alert(response.data.message);
+          this.showCheckoutModal = false;
+          this.clearCart();
+        })
+        .catch(error => {
+          // LƯU Ý: Thay thế alert() bằng Custom Modal nếu bạn đang sử dụng
+          alert(error.response.data.error || "Lỗi khi đặt hàng");
+        });
+    },
+    ////////////////////
+
+    loadCart() {
+      this.cart = JSON.parse(localStorage.getItem("cart")) || [];
+    },
+
+    toggleCart() {
+      this.showCart = !this.showCart;
+    },
+
+    increaseQuantity(index) {
+      if (this.cart[index].quantity < 5) {
+        this.cart[index].quantity++;
+        this.saveCart();
+      }
+    },
+
+    decreaseQuantity(index) {
+      if (this.cart[index].quantity > 1) {
+        this.cart[index].quantity--;
+      } else {
+        this.cart.splice(index, 1);
+      }
+      this.saveCart();
+    },
+
+    clearCart() {
+      this.cart = [];
+      this.order.cart = [];
+      localStorage.removeItem("cart");
+    },
+
+    removeItem(index) {
+      this.cart.splice(index, 1);
+      this.saveCart();
+    },
+
+    saveCart() {
+      localStorage.setItem("cart", JSON.stringify(this.cart));
+    },
+
+  }
 };
 </script>
 
+
 <style>
+.suggest-box {
+  background: white;
+  border: 1px solid #ddd;
+  position: absolute;
+  width: 100%;
+  z-index: 99;
+  list-style: none;
+  margin-top: 5px;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggest-box li {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.suggest-box li:hover {
+  background: #f0f0f0;
+}
+
+
+
+
+
 .cart-icon {
   position: fixed;
   top: 20px;

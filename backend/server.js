@@ -77,10 +77,6 @@ app.use("/api/chatbot", chatbotRoute);
 
 
 
-
-
-
-
 //////////////////////////
 //api thêm kho hàng
 app.post('/api/them-kho', (req, res) => {
@@ -266,16 +262,7 @@ app.delete('/api/san_pham/:id', (req, res) => {
         res.status(200).json({ message: 'Xóa sản phẩm thành công' });
     });
 });
-//tìm kiểm sản phẩmphẩm
-app.get('/api/search', (req, res) => {
-  const keyword = `%${req.query.q}%`;
-  const sql = "SELECT * FROM san_pham WHERE SP_ten LIKE ?";
 
-  db.query(sql, [keyword], (err, result) => {
-    if (err) return res.status(500).json({ error: "Lỗi truy vấn" });
-    res.json(result);
-  });
-});
 
   
 //lấy thông tin sản phẩm theo mã sản phẩm
@@ -1171,6 +1158,55 @@ app.get("/api/orders/count", (req, res) => {
 });
 
 ////////////////////////////////////////
+// tìm kiếm sản phẩm
+
+app.get("/sanpham/suggest", (req, res) => {
+    const { q } = req.query;
+
+    if (!q) {
+        // Trả về mảng rỗng nếu không có từ khóa tìm kiếm
+        return res.json([]);
+    }
+
+    // Câu lệnh SQL: Tìm kiếm các sản phẩm có SP_ten BẮT ĐẦU BẰNG chuỗi q (không phân biệt chữ hoa/thường)
+    const sql = "SELECT SP_ma, SP_ten FROM san_pham WHERE LOWER(SP_ten) LIKE LOWER(?) LIMIT 10";
+    
+    // Tham số: q% (Tìm kiếm bắt đầu bằng q)
+    db.query(sql, [`${q}%`], (err, rows) => {
+        if (err) {
+            console.error("API Error in /sanpham/suggest:", err);
+            return res.status(500).json({ 
+                message: "Internal Server Error", 
+                error: err.message || "Unknown Error" 
+            });
+        }
+        
+        // Trả về kết quả tìm kiếm
+        res.json(rows);
+    });
+});
+
+app.get("/api/sanpham/:id", async (req, res) => {
+  try {
+    const sql = "SELECT * FROM san_pham WHERE SP_ma = ?";
+    const [rows] = await db.execute(sql, [req.params.id]);
+
+    if (rows.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
+
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: "Lỗi server", error: err });
+  }
+});
+
+
+
+
+
+
+
+
+
 
 
 // Khởi động server
