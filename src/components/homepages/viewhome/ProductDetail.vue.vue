@@ -164,17 +164,15 @@ export default {
 <style scoped>
 /* --- Tổng quan và Container --- */
 .detail-page {
-  /* Thiết lập nền cho trang hoặc căn giữa nội dung */
-  background-color: #f8f9fa; /* Màu nền nhẹ nhàng */
+  background-color: #f8f9fa;
   padding: 40px 20px;
   display: flex;
   justify-content: center;
 }
 
 .detail-card {
-  /* Container chính cho chi tiết sản phẩm */
   display: flex;
-  max-width: 1100px; /* Thu hẹp tổng thể */
+  max-width: 1100px;
   width: 100%;
   background-color: #ffffff;
   border-radius: 10px;
@@ -184,7 +182,7 @@ export default {
 
 /* --- Cột Ảnh (Left) --- */
 .detail-left {
-  flex: 0.8; /* Cột ảnh nhỏ hơn */
+  flex: 0.8;
   padding: 20px;
   display: flex;
   justify-content: center;
@@ -193,7 +191,7 @@ export default {
 
 .detail-img {
   width: 90%;
-  max-width: 400px; /* Giảm max-width để ảnh nhỏ hơn */
+  max-width: 380px;
   height: auto;
   border-radius: 8px;
   object-fit: contain;
@@ -202,29 +200,29 @@ export default {
 
 /* --- Cột Thông tin (Right) --- */
 .detail-right {
-  flex: 1.2; /* Cột thông tin lớn hơn */
+  flex: 1.2;
   padding: 30px;
   display: flex;
   flex-direction: column;
 }
 
 .detail-title {
-  font-size: 2.5em; /* Chữ to hơn */
+  font-size: 2.5em;
   font-weight: 700;
   color: #333;
-  margin-bottom: 10px; /* Khoảng cách hẹp hơn */
+  margin-bottom: 10px;
 }
 
 /* --- Giá và Tình trạng --- */
 .price-status-group {
   display: flex;
   align-items: center;
-  margin-bottom: 15px; /* Khoảng cách hẹp hơn */
-  justify-content: space-between; /* Đẩy giá và tình trạng ra hai bên */
+  margin-bottom: 15px;
+  justify-content: space-between;
 }
 
 .detail-price {
-  font-size: 2.2em; /* Chữ to hơn */
+  font-size: 2.2em;
   color: #d9534f;
   font-weight: 600;
 }
@@ -235,50 +233,49 @@ export default {
 }
 
 .status {
-  font-size: 1.1em; /* Chữ to hơn */
+  font-size: 1.1em;
   color: #5cb85c;
   font-weight: 500;
-  white-space: nowrap; /* Đảm bảo không bị xuống dòng */
+  white-space: nowrap;
 }
 
 /* --- Mô tả sản phẩm --- */
 .description {
-  margin-bottom: 20px; /* Khoảng cách hẹp hơn */
-  line-height: 1.5;
-  font-size: 1.15em; /* Chữ to hơn */
-  color: #555;
-  text-align: left; /* Đảm bảo căn lề trái */
+  margin-bottom: 25px;
+  line-height: 1.6;
+  font-size: 1.3em; /* ✅ chữ lớn hơn */
+  color: #444;
+  text-align: left;
   width: 100%;
 }
 
 .description strong {
-  color: #333;
-  font-weight: 600;
+  color: #222;
+  font-weight: 700;
 }
 
 .divider {
   border: 0;
   height: 1px;
   background: #eee;
-  margin: 15px 0; /* Khoảng cách hẹp hơn */
+  margin: 20px 0;
 }
 
-/* --- Size và Số lượng (Selection Group) --- */
+/* --- Size và Số lượng --- */
 .selection-group {
   margin-bottom: 25px;
 }
 
 .size-info {
   margin-bottom: 15px;
-  display: flex; /* Dùng flex để quản lý các dòng con */
+  display: flex;
   flex-direction: column;
 }
 
 .size-info p {
   margin-bottom: 5px;
-  font-size: 1.15em; /* Chữ to hơn */
+  font-size: 1.2em;
   color: #333;
-  width: 100%;
 }
 
 .size-value {
@@ -291,45 +288,51 @@ export default {
   margin-left: 5px;
 }
 
-/* Dòng Chú ý (Cải tiến để sát nhau) */
+/* --- Chú ý: cách chọn size --- */
 .notice {
-  font-size: 1.1em; /* Chữ to hơn */
-  color: #777;
-  line-height: 1.4;
-  
-  /* Căn chỉnh các phần tử trên cùng một dòng */
+  font-size: 1.2em; /* ✅ chữ lớn hơn */
+  color: #666;
+  line-height: 1.5;
+  margin-top: 8px;
+
+  /* ✅ hiển thị gọn gàng 1 dòng, nếu hẹp thì tự xuống */
   display: flex;
-  align-items: baseline; 
-  gap: 5px; /* Khoảng cách nhỏ giữa các từ */
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .notice strong {
   font-weight: 600;
-  color: #555;
+  color: #444;
 }
 
 .notice a {
   color: #007bff;
   text-decoration: none;
-  font-weight: 500;
-  white-space: nowrap; /* Giữ liên kết trên cùng một dòng */
+  font-weight: 600;
 }
 
+.notice a:hover {
+  text-decoration: underline;
+}
+
+/* --- Số lượng --- */
 .quantity-control {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 15px; /* Tách biệt khỏi phần size */
+  margin-top: 15px;
 }
 
 .quantity-control label {
   font-weight: 600;
   color: #333;
-  font-size: 1.1em; /* Chữ to hơn */
+  font-size: 1.1em;
 }
 
 .quantity-input {
-  width: 50px;
+  width: 55px;
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -347,13 +350,13 @@ export default {
 /* --- Nút Mua hàng --- */
 .detail-buttons {
   display: flex;
-  gap: 10px; /* Khoảng cách hẹp hơn */
-  margin-top: auto; /* Đẩy các nút xuống cuối cột */
+  gap: 10px;
+  margin-top: auto;
 }
 
 .detail-buttons button {
   padding: 10px 20px;
-  font-size: 1.1em; /* Chữ to hơn */
+  font-size: 1.1em;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -382,7 +385,7 @@ export default {
   background-color: #e0a800;
 }
 
-/* --- Custom Alert/Modal --- */
+/* --- Custom Alert --- */
 .custom-alert-overlay {
   position: fixed;
   top: 0;
@@ -426,29 +429,18 @@ export default {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Responsive (Điều chỉnh trên màn hình nhỏ hơn) --- */
+/* --- Responsive --- */
 @media (max-width: 900px) {
   .detail-card {
     flex-direction: column;
-    padding: 0;
-  }
-
-  .detail-left {
-    padding: 20px 20px 0 20px;
-    flex: 1; /* Trả về flex 1 để chiếm hết chiều rộng trên mobile */
   }
 
   .detail-img {
-    max-width: 70%;
-  }
-
-  .detail-right {
-    padding: 20px;
-    flex: 1;
+    max-width: 75%;
   }
 
   .price-status-group {
@@ -460,5 +452,11 @@ export default {
   .detail-buttons {
     flex-direction: column;
   }
+
+  .notice {
+    flex-direction: column; /* ✅ “Cách chọn size” nằm dưới trên màn nhỏ */
+    align-items: flex-start;
+  }
 }
+
 </style>

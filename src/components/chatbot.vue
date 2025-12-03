@@ -12,6 +12,7 @@
         <button class="close-btn" @click="toggleChatbox">×</button>
       </div>
 
+      <!-- Tin nhắn -->
       <div class="messages" ref="messagesContainer">
         <div
           v-for="(msg, i) in messages"
@@ -19,12 +20,39 @@
           :class="['message', msg.role]"
         >
           <div class="bubble">
-            <strong>{{ msg.role === 'user' ? 'Bạn:' : 'Chatbot' }}</strong>
-<p v-html="msg.text" class="message-text"></p>
+            <strong>{{ msg.role === "user" ? "Bạn:" : "Chatbot:" }}</strong>
+            <p v-html="msg.text"></p>
           </div>
         </div>
       </div>
 
+      <!-- ===== QUICK REPLIES FULL (CHỈ HIỆN LẦN ĐẦU) ===== -->
+      <div v-if="showQuickReplies && !isCollapsed" class="quick-replies">
+        <button
+          v-for="(q, index) in quickReplies"
+          :key="index"
+          @click="selectQuickReply(q)"
+        >
+          {{ q }}
+        </button>
+      </div>
+
+      <!-- ===== NÚT ĐIỀU HƯỚNG GỢI Ý ===== -->
+      <div v-if="isCollapsed" class="quick-nav">
+        <button @click="toggleQuickMenu">☰ Gợi ý</button>
+
+        <div v-if="showQuickMenu" class="quick-dropdown">
+          <button
+            v-for="(q, index) in quickReplies"
+            :key="index"
+            @click="selectQuickReply(q)"
+          >
+            {{ q }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Thanh nhập -->
       <div class="input-box">
         <input
           v-model="userInput"
@@ -47,6 +75,30 @@ const userInput = ref("");
 const messages = ref([]);
 const messagesContainer = ref(null);
 
+/* ================= QUICK REPLIES ================= */
+const showQuickReplies = ref(true);
+const isCollapsed = ref(false);
+const showQuickMenu = ref(false);
+
+const quickReplies = ref([
+  "Các mẫu sản phẩm của cửa hàng",
+  "Tư vấn size giày",
+  "Sản phẩm bán chạy nhất của cửa hàng",
+  "Tra cứu đơn hàng",
+]);
+
+const toggleQuickMenu = () => {
+  showQuickMenu.value = !showQuickMenu.value;
+};
+
+const selectQuickReply = (text) => {
+  userInput.value = text;
+  showQuickReplies.value = false;
+  isCollapsed.value = true;      // ✅ Sau lần bấm đầu → thu gợi ý vào menu
+  showQuickMenu.value = false;
+  sendMessage();
+};
+
 const scrollToBottom = () => {
   nextTick(() => {
     const el = messagesContainer.value;
@@ -54,13 +106,13 @@ const scrollToBottom = () => {
   });
 };
 
-// 🟦 Theo dõi khi bật hộp chat => gửi lời chào mặc định
+/* ================= LỜI CHÀO ================= */
 watch(isChatboxOpen, (open) => {
   if (open && messages.value.length === 0) {
     messages.value.push({
       role: "bot",
       text:
-        "👋 Xin chào! Mình là trợ lý ảo của <b>ShoeTCS</b>.<br><br>" +
+         "👋 Xin chào! Mình là trợ lý ảo của <b>ShoeTCS</b>.<br><br>" +
         "Bạn có thể hỏi mình về:<br>" +
         "🥿 <b>Sản phẩm</b> (giày, loại, size, màu...)<br>" +
         "📦 <b>Đơn hàng</b> (trạng thái, tổng tiền, gần đây...)<br>" +
@@ -71,12 +123,19 @@ watch(isChatboxOpen, (open) => {
   }
 });
 
+/* ================= GỬI TIN NHẮN ================= */
 const sendMessage = async () => {
   if (!userInput.value.trim()) return;
 
   const userMessage = userInput.value;
-  messages.value.push({ role: "user", text: userMessage });
+
+  messages.value.push({
+    role: "user",
+    text: userMessage,
+  });
+
   userInput.value = "";
+  showQuickReplies.value = false;
   scrollToBottom();
 
   try {
@@ -87,17 +146,21 @@ const sendMessage = async () => {
     });
 
     const data = await res.json();
-    messages.value.push({ role: "bot", text: data.reply });
+
+    messages.value.push({
+      role: "bot",
+      text: data.reply,
+    });
+
     scrollToBottom();
   } catch (err) {
     messages.value.push({
       role: "bot",
-      text: "😢 Xin lỗi, hệ thống đang gặp sự cố. Vui lòng thử lại sau.",
+      text: "😢 Xin lỗi, hệ thống đang gặp sự cố.",
     });
   }
 };
 </script>
-
 
 <style scoped>
 /* === Nút mở chat === */
@@ -237,4 +300,74 @@ button:hover {
 .messages::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
+
+/* === Quick Replies (Dạng hiển thị ban đầu) === */
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background: #ffffff;
+  border-top: 1px solid #ddd;
+}
+
+.quick-replies button {
+  background: #e7f1ff;
+  color: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.quick-replies button:hover {
+  background: #007bff;
+  color: #fff;
+}
+
+/* ✅ === Thanh điều hướng gợi ý (sau khi click lần đầu) === */
+.quick-nav {
+  padding: 6px 10px;
+  border-top: 1px solid #ddd;
+  background: white;
+  position: relative;
+}
+
+.quick-nav button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ✅ === Menu xổ gợi ý === */
+.quick-dropdown {
+  position: absolute;
+  bottom: 45px;
+  right: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.quick-dropdown button {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #007bff;
+  background: #e7f1ff;
+  font-size: 13px;
+  cursor: pointer;
+}
 </style>
+
